@@ -64,11 +64,11 @@ class BernardAi:
         sess = tf.InteractiveSession()
         tf.global_variables_initializer().run()
 
-        data_x, test_x, data_y, test_y = get_test_set(98, data_set, data_result)
+        data_x, test_x, data_y, test_y = get_test_set(10, data_set, data_result)
         print("Training set of {} and test set of {} data".format(len(data_x), len(test_x)))
 
         for i in range(8):
-            batch_x, batch_y = get_training_batch(7, data_x, data_y)
+            batch_x, batch_y = get_training_batch(4, data_x, data_y)
             sess.run(train_step, feed_dict={self.x: batch_x, self.y_: batch_y})
 
         merged = tf.summary.merge_all()

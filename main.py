@@ -14,19 +14,21 @@ def compile_config(argv, config):
 
 
 def create_training_set(path, test_set, test_result):
-    file = open(path, 'rb')
     i = 0
-    while file.:
-        i=i+1
-        print(i)
-        img = file.read(687126)
-        result = file.read(1)
-        res_array = [0, 0, 0, 0, 0, 0]
-        print(result)
-        res_array[result-1] = 1
-        test_result.append(res_array)
-        image = ImageOps.mirror((Image.frombytes('RGB', (638, 359), img)).convert('L').rotate(180))
-        test_set.append(numpy.array(image).ravel())
+
+    with open(path, 'rb') as file:
+        while True:
+            img = file.read(687126)
+            if not img: break
+            i = i + 1
+            print(i)
+            result = file.read(1)
+            res_array = [0, 0, 0, 0, 0, 0]
+            print(result)
+            res_array[int.from_bytes(result, 'big') - 1] = 1
+            test_result.append(res_array)
+            image = ImageOps.mirror((Image.frombytes('RGB', (638, 359), img)).convert('L').rotate(180))
+            test_set.append(numpy.array(image).ravel())
 
 
 def main():
