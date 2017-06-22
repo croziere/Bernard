@@ -4,37 +4,39 @@ import numpy
 import tensorflow as tf
 
 
-def get_training_batch(n, data_set, result_set):
-    indexes = random.sample(range(len(result_set)), n)
+def get_batch(data_set):
+    """
+    Return a full batch from a dataSet
+    :param data_set:
+    :return: batch[0] With input data and batch[1] with output data
+    """
+    batch = [[], []]
+    for i in range(len(data_set)):
+        batch[0].append(data_set[i]['data'])
+        batch[1].append(data_set[i]['label'])
 
-    batch_x = []
+    return batch
+
+def get_random_batch(n, data_set):
+    """
+    Get a random batch of size n from a dataSet
+    :param n: Size of the batch
+    :param data_set: The data set
+    :return: batch[0] With input data and batch[1] with output data
+    """
+    indexes = random.sample(range(len(data_set)), n)
+
+    batch = [[], []]
     for i in indexes:
-        batch_x.append(data_set[i])
+        batch[0].append(data_set[i]['data'])
+        batch[1].append(data_set[i]['label'])
 
-    batch_y = []
-    for i in indexes:
-        batch_y.append(result_set[i])
-
-    return batch_x, batch_y
+    return batch
 
 
-def get_test_set(n, data_set, result_set):
-    indexes = random.sample(range(len(result_set)), n)
+def split_data_set(n, data_set):
+    n = int(n)
+    test_set = data_set[:n]
+    train_set = data_set[n:]
 
-    test_set = []
-    for i in indexes:
-        test_set.append(data_set[i])
-
-    test_result = []
-    for i in indexes:
-        test_result.append(result_set[i])
-
-    data_x = []
-    data_y = []
-    for i in range(len(result_set)):
-        if not indexes.__contains__(i):
-            data_x.append(data_set[i])
-            data_y.append(result_set[i])
-
-
-    return data_x, test_set, data_y, test_result
+    return train_set, test_set

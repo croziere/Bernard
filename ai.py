@@ -6,7 +6,7 @@
 import tensorflow as tf
 from network import *
 from summary import variable_summaries
-from train import get_training_batch, get_test_set
+from train import get_random_batch, get_batch
 
 
 class BernardAi:
@@ -23,13 +23,14 @@ class BernardAi:
         self.y = None
         self.y_ = None
 
-    def init(self, height, width):
+    def init(self, height, width, output):
         """
         Initialise le réseau de neurones
         """
         print("Initializing {} AI".format(self.name))
 
         self.image_vector_size = height * width
+        self.output = output
 
         # Image input
         self.x = tf.placeholder(tf.float32, [None, self.image_vector_size])
@@ -37,11 +38,11 @@ class BernardAi:
         with tf.name_scope(self.name):
             # Node and bias
             with tf.name_scope('weights'):
-                self.W = weight_variable([self.image_vector_size, 6])
+                self.W = weight_variable([self.image_vector_size, self.output])
                 variable_summaries(self.W)
 
             with tf.name_scope('biases'):
-                self.b = bias_variable([6])
+                self.b = bias_variable([self.output])
                 variable_summaries(self.b)
 
         # Result
@@ -49,56 +50,65 @@ class BernardAi:
             self.y = tf.nn.softmax(tf.matmul(self.x, self.W) + self.b)
             tf.summary.histogram('pre_activation', self.y)
 
-    def train(self, data_set, data_result, train_count, test_part_size, train_cycle, train_batch):
+        self.sess = tf.InteractiveSession()
+
+    def train(self, train_set, train_cycle, train_batch_size, gradient):
         """
             Entraine le réseau de neuronne
         """
-        print("Training on {} data".format(train_count))
+        train_size = len(train_set)
+        print("Training {} on {} data {} times with batches of size {} with {} gradient".format(self.name, train_size, train_cycle, train_batch_size, gradient))
 
         # Expected result y_ and cross_entropy error reduction model
-        self.y_ = tf.placeholder(tf.float32, [None, 6])
+        self.y_ = tf.placeholder(tf.float32, [None, self.output])
         cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=self.y_, logits=self.y))
 
         # Training
-        train_step = tf.train.GradientDescentOptimizer(0.05).minimize(cross_entropy)
+        train_step = tf.train.GradientDescentOptimizer(gradient).minimize(cross_entropy)
 
-        sess = tf.InteractiveSession()
         tf.global_variables_initializer().run()
 
-        data_x, test_x, data_y, test_y = get_test_set(test_part_size, data_set, data_result)
-        print("Training set of {} and test set of {} data".format(len(data_x), len(test_x)))
+        for _ in range(train_cycle):
+            batch = get_random_batch(train_batch_size, train_set)
+            self.sess.run(train_step, feed_dict={self.x: batch[0], self.y_: batch[1]})
 
-        for i in range(train_cycle):
-            batch_x, batch_y = get_training_batch(train_batch, data_x, data_y)
-            sess.run(train_step, feed_dict={self.x: batch_x, self.y_: batch_y})
 
         merged = tf.summary.merge_all()
-        self.log(sess.graph)
+        self.log(self.sess.graph)
+        self.save(self.sess)
 
+    def test(self, test_set):
+        print("Testing {} with {} test data".format(self.name, len(test_set)))
         correct_predictions = tf.equal(tf.arg_max(self.y, 1), tf.arg_max(self.y_, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
 
-        print(sess.run(accuracy, feed_dict={self.x: test_x, self.y_: test_y}))
+        batch = get_batch(test_set)
+        print(self.sess.run(accuracy, feed_dict={self.x: batch[0], self.y_: batch[1]}))
 
     def log(self, graph):
         file_writer = tf.summary.FileWriter('{}.log'.format(self.name), graph=graph)
 
-    def predict(self):
+    def predict(self, image_vector):
         """
             Retourne une prédiction
             L'AI doit avoir été entrainée pour produire
             des résultats corrects
         """
-        print("Predict")
+        return self.sess.run(self.y, feed_dict={self.x: image_vector})
 
-    def save(self, path):
+    def save(self, sess):
         """
             Sauvegarde le graphe et l'état du réseau
         """
-        print("saving")
+        saver = tf.train.Saver()
+        savePath = 'save/{}'.format(self.name)
+        saver.save(sess, savePath)
+        saver.export_meta_graph(savePath)
+        print("{} sauvegardé dans {}".format(self.name, savePath))
+
 
     @staticmethod
-    def from_save(cls, path):
+    def from_save(path, name):
         """
         Instancie une AI à partir de sa sauvegarde
         :param cls: BernardAi
@@ -106,3 +116,8 @@ class BernardAi:
         :return: Instance de BernardAI
         """
         print("Loading")
+        ai = BernardAi(name)
+        ai.init(638, 359)
+        saver = tf.train.import_meta_graph(path)
+        saver.restore(ai.sess, path)
+
