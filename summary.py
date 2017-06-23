@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def variable_summaries(var):
     with tf.name_scope('summaries'):
         mean = tf.reduce_mean(var)
