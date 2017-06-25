@@ -7,7 +7,7 @@ Bernard is an AI made from TensorFlow neural network, aiming to play a simple pl
 
 Le fichier DataSet doit être présent à la racine du projet. Executez `main.py`, le réseau va charger le fichier DataSet et s'entrainer avec, en indiquant sa précision tous les 10 tour d'entrainement.
 
-Le réseau écrit la progression sur le disque. Pour les lire utilisez tensorboard `tensorboard --logdir=<dir>``
+Le réseau écrit la progression sur le disque. Pour les lire utilisez tensorboard `tensorboard --logdir=<dir>`
 
 ## Bernard I
 
