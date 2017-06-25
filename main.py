@@ -13,30 +13,34 @@ from network import *
 from train import split_data_set
 
 
-def compile_config(argv, config):
-    return config.update(argv)
-
 
 def create_training_set(path):
+    """
+    Transforme le fichier de données en dictionnaire de données
+    data_set[n]['data'] : Vecteur de l'image
+    data_set[n]['label'] : Vecteur de réponse
+    :param path: Le chemin du fichier
+    """
     data_set = []
     i = 0
     with open(path, 'rb') as file:
         while True:
             i = i + 1
             entry = {'data': None, 'label': None}
-            img = file.read(687126)
+            img = file.read(687126) #Les images provenant du jeu font 687126 octets
             if not img: break
-            result = file.read(1)
+            result = file.read(1) #Le résultat est sur 1 octet
             res_array = [0, 0, 0, 0, 0, 0]
             res_array[int.from_bytes(result, 'big')] = 1
             entry['label'] = res_array
+            # Transformation de l'image (l'image arrive à l'envers du jeu)
             image = Image.frombytes('RGB', (638, 359), img)
-            image = image.convert('L')
-            image = image.rotate(180)
-            image.thumbnail([64, 36], Image.ANTIALIAS)
-            image = ImageOps.mirror(image)
-            image.save('images/img{}-{}.bmp'.format(i, int.from_bytes(result, 'big')))
-            entry['data'] = numpy.array(image).ravel()
+            image = image.convert('L') #Conversion en niveaux de gris
+            image = image.rotate(180) #Retournement de l'image
+            image.thumbnail([64, 36], Image.ANTIALIAS) #Redimensionnement
+            image = ImageOps.mirror(image) #Mirroir
+            image.save('images/img{}-{}.bmp'.format(i, int.from_bytes(result, 'big'))) #Sauvegarde le jeu de données afin de le vérifier
+            entry['data'] = numpy.array(image).ravel() #On écrit le résultat sur un vecteur à une dimension
             data_set.append(entry)
     return data_set
 

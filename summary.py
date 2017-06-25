@@ -1,7 +1,18 @@
+"""
+Fonctions d'aide pour l'affichage sur tensorflow
+"""
 import tensorflow as tf
 
 
 def variable_summaries(var):
+    """
+    Attache les données à un Tensor
+    Permet la visualisation sur tensorboard de :
+    La moyenne
+    Le max
+    Le min
+    L'histogramme
+    """
     with tf.name_scope('summaries'):
         mean = tf.reduce_mean(var)
         tf.summary.scalar('mean', mean)

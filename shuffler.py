@@ -1,3 +1,9 @@
+"""
+Utilitaire permettant de mélanger aléatoirement
+le jeu de données
+Ouvre un fichier RawSet
+Ecrit un fichier DataSet
+"""
 import random
 
 import numpy
